@@ -7,13 +7,25 @@
 
 template <class TKey, class TValue>
 bool check_rb_properties_func(RBTree<TKey, TValue>& tree) {
-    // Предполагаем, что RBTree имеет публичный метод check_all_rb_properties()
     return tree.check_all_rb_properties();
 }
 
+TEST(rb_tree_suite, stress_test) {
+    RBTree <int, std::string> r1;
+
+    for (int i = 0; i < 1000000; i++) {
+        r1.insert(i, std::to_string(i));
+    }
+    for (int i = 0; i < 1000000; i++) {
+        r1.erase(i);
+    }
+
+    EXPECT_EQ(r1.begin(), r1.end());
+}
 
 TEST(rb_tree_suite, insert_simple) {
     RBTree<int, std::string> rb_tree;
+
     ASSERT_TRUE(rb_tree.insert(10, "ten"));
     ASSERT_TRUE(check_rb_properties_func(rb_tree));
     ASSERT_TRUE(rb_tree.insert(5, "five"));
@@ -21,7 +33,6 @@ TEST(rb_tree_suite, insert_simple) {
     ASSERT_TRUE(rb_tree.insert(15, "fifteen"));
     ASSERT_TRUE(check_rb_properties_func(rb_tree));
     ASSERT_FALSE(rb_tree.insert(10, "ten_again"));
-
     auto keys = rb_tree.get_all_keys_inorder();
     std::vector<int> expected_keys = { 5, 10, 15 };
     ASSERT_EQ(keys, expected_keys);
@@ -29,12 +40,14 @@ TEST(rb_tree_suite, insert_simple) {
 
 TEST(rb_tree_suite, insert_causing_recolor) {
     RBTree<int, std::string> rb_tree;
+
     rb_tree.insert(10, "");
     rb_tree.insert(5, "");
     rb_tree.insert(15, "");
-    ASSERT_TRUE(check_rb_properties_func(rb_tree)); // 10(B), 5(R), 15(R)
-    rb_tree.insert(20, ""); // Вставка 20 (R). Parent 15(R). Uncle 5(R). -> Recolor
-    // 10(R), 5(B), 15(B), 20(R). Root 10 становится R, затем B.
+
+    
+    ASSERT_TRUE(check_rb_properties_func(rb_tree));
+    rb_tree.insert(20, "");
     ASSERT_TRUE(check_rb_properties_func(rb_tree));
     auto keys = rb_tree.get_all_keys_inorder();
     std::vector<int> expected_keys = { 5, 10, 15, 20 };
@@ -43,9 +56,11 @@ TEST(rb_tree_suite, insert_causing_recolor) {
 
 TEST(rb_tree_suite, insert_causing_rotations) {
     RBTree<int, std::string> rb_tree_ll;
+
     rb_tree_ll.insert(30, "");
     rb_tree_ll.insert(20, "");
     rb_tree_ll.insert(10, "");
+
     ASSERT_TRUE(check_rb_properties_func(rb_tree_ll));
     auto keys1 = rb_tree_ll.get_all_keys_inorder();
     std::vector<int> expected1 = { 10, 20, 30 };
@@ -63,13 +78,14 @@ TEST(rb_tree_suite, insert_causing_rotations) {
 
 TEST(rb_tree_suite, erase_various_cases_complex) {
     RBTree<int, std::string> rb_tree;
+
     int nums_to_insert[] = { 10, 5, 15, 3, 7, 12, 17, 1, 4, 6, 8, 11, 14, 16, 18, 20, 2, 9, 13, 19 };
     for (int num : nums_to_insert) {
         ASSERT_TRUE(rb_tree.insert(num, "val_" + std::to_string(num)));
         ASSERT_TRUE(check_rb_properties_func(rb_tree));
     }
 
-    std::vector<int> keys_to_erase = { 1, 10, 20, 7, 15, 13, 4, 18 }; // Разные случаи
+    std::vector<int> keys_to_erase = { 1, 10, 20, 7, 15, 13, 4, 18 };
     std::set<int> initial_set;
     for (int num : nums_to_insert) initial_set.insert(num);
 
@@ -88,6 +104,7 @@ TEST(rb_tree_suite, erase_various_cases_complex) {
 
 TEST(rb_tree_suite, delete_root_multiple_times_rb) {
     RBTree<int, std::string> rb_tree;
+
     rb_tree.insert(10, "");
     rb_tree.insert(5, "");
     rb_tree.insert(15, "");
@@ -98,7 +115,6 @@ TEST(rb_tree_suite, delete_root_multiple_times_rb) {
     auto keys1 = rb_tree.get_all_keys_inorder();
     ASSERT_EQ(keys1.size(), 2);
 
-    // Удаляем один из оставшихся (который мог стать корнем)
     ASSERT_TRUE(rb_tree.erase(keys1[0]));
     ASSERT_TRUE(check_rb_properties_func(rb_tree));
     auto keys2 = rb_tree.get_all_keys_inorder();

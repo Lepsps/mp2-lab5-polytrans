@@ -238,16 +238,10 @@ Polynom& Polynom::operator=(std::string& oth_str) {
 	std::string current_term_str;
 	for (size_t i = 0; i < s.length(); ++i) {
 		current_term_str += s[i];
-		if (i + 1 < s.length() && (s[i + 1] == '+' || (s[i + 1] == '-' && !isdigit(s[i])))) { // !isdigit(s[i]) to handle x^-2 like things if they were allowed
-			// Process current_term_str
-			// This simple split won't work for Polynom class's original parser logic
-			// The original parser was more stateful.
-			// This assignment operator now assumes 'oth_str' is a SINGLE MONOMIAL string.
+		if (i + 1 < s.length() && (s[i + 1] == '+' || (s[i + 1] == '-' && !isdigit(s[i])))) {
 		}
 	}
-	// Process the last/only term
 	if (current_term_str.empty()) return *this;
-
 
 	float r = 1.0f;
 	std::vector<int> p = { 0, 0, 0 };
@@ -279,11 +273,11 @@ Polynom& Polynom::operator=(std::string& oth_str) {
 		}
 
 	}
-	else { // No explicit number part before variables, e.g. "x" or "-y"
+	else {
 		if (k < current_term_str.length() && (current_term_str[k] == 'x' || current_term_str[k] == 'y' || current_term_str[k] == 'z')) {
-			// r is already 1.0 or -1.0
+
 		}
-		else if (k == current_term_str.length() && num_part.empty()) { // String was just "+" or "-"
+		else if (k == current_term_str.length() && num_part.empty()) {
 			throw std::invalid_argument("Invalid term: " + current_term_str);
 		}
 	}
@@ -328,7 +322,7 @@ Polynom& Polynom::operator=(std::string& oth_str) {
 		p[var_idx] += power;
 	}
 
-	if (std::abs(r) < 1e-6 && var_found) { // e.g. 0x, 0y^2 make r=0.0, p={0,0,0}
+	if (std::abs(r) < 1e-6 && var_found) {
 		this->addMonom(Monom(0.0f, { 0,0,0 }));
 	}
 	else {
@@ -341,10 +335,7 @@ void Polynom::simplify() {
 	if (terms.empty() || terms.size() == 1) {
 		return;
 	}
-
-	//std::cout << *this << std::endl;
 	terms.sort(true);
-	//std::cout << *this << std::endl;
 	CyclicList<Monom> newTerms;
 	Monom curr = terms[0];
 

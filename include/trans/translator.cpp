@@ -1,6 +1,6 @@
 #include "translator.h"
 #include <iostream>
-#include <algorithm> // Required for std::remove_if
+#include <algorithm> 
 
 Polynom Translator::processExpression(const std::string& input) {
     try {
@@ -16,7 +16,7 @@ Polynom Translator::processExpression(const std::string& input) {
 }
 
 void Translator::processInput(const std::string& input_str) {
-    std::string input = input_str; // Make a mutable copy
+    std::string input = input_str;
     input.erase(std::remove_if(input.begin(), input.end(), ::isspace), input.end());
     if (input.empty()) {
         return;
@@ -24,11 +24,11 @@ void Translator::processInput(const std::string& input_str) {
 
 
     size_t equal_pos = input.find('=');
-    if (equal_pos != std::string::npos && equal_pos > 0 && input[equal_pos - 1] != '+' && input[equal_pos - 1] != '-' && input[equal_pos - 1] != '*') { // Basic check for assignment
+    if (equal_pos != std::string::npos && equal_pos > 0 && input[equal_pos - 1] != '+' && input[equal_pos - 1] != '-' && input[equal_pos - 1] != '*') {
         std::string var_name = input.substr(0, equal_pos);
 
         if (var_name.empty() || !isalpha(var_name[0])) {
-            if (var_name != "x" && var_name != "y" && var_name != "z") { // x,y,z are not assignable vars
+            if (var_name != "x" && var_name != "y" && var_name != "z") {
                 std::cerr << "Error: Invalid variable name for assignment: " << var_name << std::endl;
                 return;
             }
@@ -63,9 +63,9 @@ void Translator::processInput(const std::string& input_str) {
         }
 
     }
-    else { // Not an assignment, evaluate directly
+    else {
         try {
-            Polynom result = processExpression(input_str); // Use original input string with spaces for lexer
+            Polynom result = processExpression(input_str);
             std::cout << result << std::endl;
         }
         catch (const std::exception&) {

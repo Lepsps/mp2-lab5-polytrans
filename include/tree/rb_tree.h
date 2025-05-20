@@ -7,21 +7,16 @@ template <class TKey, class TValue>
 class RBTree : public BSTree<TKey, TValue> {
 private:
     using Node = typename BSTree<TKey, TValue>::Node;
-    using Color = typename BSTree<TKey, TValue>::Node::Color; // Явно указываем на Node::Color
+    using Color = typename BSTree<TKey, TValue>::Node::Color;
     using BSTree<TKey, TValue>::root_node;
-    // Базовые вращения из BSTree
-    // using BSTree<TKey, TValue>::perform_rotate_left_base; 
-    // using BSTree<TKey, TValue>::perform_rotate_right_base;
 
-    // --- RB-специфичные вспомогательные методы ---
     Node* get_grandparent_rb(Node* n) const { return (n && n->parent) ? n->parent->parent : nullptr; }
     Node* get_sibling_rb(Node* n) const { return (!n || !n->parent) ? nullptr : (n == n->parent->left ? n->parent->right : n->parent->left); }
     Node* get_uncle_rb(Node* n) const { Node* p = (n ? n->parent : nullptr); return get_grandparent_rb(n) ? get_sibling_rb(p) : nullptr; }
     Color get_node_color_rb(Node* n) const { return (n == nullptr) ? Color::BLACK : n->color; }
     void set_node_color_rb(Node* n, Color c) { if (n) n->color = c; }
 
-    // Вращения для RB (могут быть просто вызовами базовых, если базовые корректны)
-    // RB не требует обновления высот, так что можно использовать базовые напрямую
+ 
     Node* rb_rotate_left(Node* x) { return this->perform_rotate_left_base(x); }
     Node* rb_rotate_right(Node* y) { return this->perform_rotate_right_base(y); }
 
@@ -163,25 +158,19 @@ private:
     }
 
 
-
-    // --- Рекурсивные проверки свойств RB-дерева ---
-    // 1. Свойство BST (ключи упорядочены)
     bool check_bst_property_recursive(Node* node, const TKey* min_key, const TKey* max_key) const {
         if (!node) return true;
         if ((min_key && node->key <= *min_key) || (max_key && node->key >= *max_key)) {
-            // std::cerr << "RB: BST Violation at node " << node->key << std::endl;
             return false;
         }
         return check_bst_property_recursive(node->left, min_key, &(node->key)) &&
             check_bst_property_recursive(node->right, &(node->key), max_key);
     }
 
-    // 4. Красные узлы имеют черных детей
     bool check_red_children_property_recursive(Node* node) const {
         if (!node) return true;
         if (get_node_color(node) == Color::RED) {
             if (get_node_color(node->left) == Color::RED || get_node_color(node->right) == Color::RED) {
-                // std::cerr << "RB: Red Violation - Red node " << node->key << " has red child." << std::endl;
                 return false;
             }
         }
@@ -189,30 +178,25 @@ private:
             check_red_children_property_recursive(node->right);
     }
 
-    // 5. Все пути от узла к его NIL-потомкам содержат одинаковое количество черных узлов.
-    // Возвращает черную высоту или -1 при нарушении.
     int check_black_height_property_recursive(Node* node) const {
         if (node == nullptr) {
-            return 1; // NIL-узел вносит 1 в черную высоту
+            return 1;
         }
 
         int left_bh = check_black_height_property_recursive(node->left);
-        if (left_bh == -1) return -1; // Нарушение в левом поддереве
+        if (left_bh == -1) return -1;
 
         int right_bh = check_black_height_property_recursive(node->right);
-        if (right_bh == -1) return -1; // Нарушение в правом поддереве
+        if (right_bh == -1) return -1;
 
         if (left_bh != right_bh) {
-            // std::cerr << "RB: Black Height Violation at node " << node->key 
-            //           << " (LBH: " << left_bh << ", RBH: " << right_bh << ")" << std::endl;
-            return -1; // Нарушение черной высоты
+            return -1;
         }
         return left_bh + (get_node_color(node) == Color::BLACK ? 1 : 0);
     }
 
-
-
 public:
+
     RBTree() {
         if (root_node) set_node_color_rb(root_node, Color::BLACK);
     }
@@ -281,25 +265,16 @@ public:
     }
 
     bool check_all_rb_properties() const {
-        if (root_node == nullptr) return true; // Пустое дерево - корректное RB-дерево
-
-        // Свойство 2: Корень черный
+        if (root_node == nullptr) return true;
         if (get_node_color(root_node) != Color::BLACK) {
-            // std::cerr << "RB Violation: Root is not black." << std::endl;
             return false;
         }
-        // Свойство 1: Узлы красные или черные (по определению enum)
-        // Свойство 3: Листья NIL черные (обрабатывается в get_node_color)
-
-        // Проверка свойства BST
         if (!check_bst_property_recursive(root_node, nullptr, nullptr)) {
             return false;
         }
-        // Свойство 4: Красные узлы имеют черных детей
         if (!check_red_children_property_recursive(root_node)) {
             return false;
         }
-        // Свойство 5: Одинаковая черная высота
         if (check_black_height_property_recursive(root_node) == -1) {
             return false;
         }

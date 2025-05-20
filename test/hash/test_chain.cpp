@@ -1,30 +1,48 @@
 #include "gtest.h"
-#include "chain_hash.h" // Убедитесь, что путь к вашему заголовочному файлу правильный
+#include "chain_hash.h"
 #include <string>
 #include <vector>
-#include <algorithm> // для std::sort, std::find_if
+#include <algorithm>
 
-// Для удобства определим типы, которые будем использовать в тестах
 using IntIntChainHash = ChainHash<int, int>;
 using StringIntChainHash = ChainHash<std::string, int>;
 
-// Тесты для конструктора
+TEST(ChainHashTest, stress_test) {
+    ChainHash<int, std::string> t1;
+
+    for (int i = 0; i < 1000000; ++i) {
+        t1.insert(i, std::to_string(i));
+    }
+
+    ASSERT_EQ(t1.size(), 1000000);
+
+    for (int i = 0; i < 1000000; ++i) {
+        t1.erase(i);
+    }
+
+    ASSERT_TRUE(t1.empty());
+}
+
 TEST(ChainHashSuite, ConstructorDefault) {
     IntIntChainHash ht_int_int;
+
     EXPECT_EQ(ht_int_int.size(), 0);
     EXPECT_TRUE(ht_int_int.empty());
 }
 
 TEST(ChainHashSuite, ConstructorWithInitialBuckets) {
     IntIntChainHash ht(16);
+
     EXPECT_EQ(ht.size(), 0);
     EXPECT_TRUE(ht.empty());
 }
 
 TEST(ChainHashSuite, ConstructorWithZeroInitialBuckets) {
-    IntIntChainHash ht(0); // Должен использовать значение по умолчанию (8)
+    IntIntChainHash ht(0);
+
     EXPECT_EQ(ht.size(), 0);
     EXPECT_TRUE(ht.empty());
+
     ht.insert(1, 1);
     EXPECT_EQ(ht.size(), 1);
 }
@@ -32,7 +50,9 @@ TEST(ChainHashSuite, ConstructorWithZeroInitialBuckets) {
 // Тесты для insert
 TEST(ChainHashSuite, InsertSingleElement) {
     IntIntChainHash ht_int_int;
+
     auto it = ht_int_int.insert(1, 100);
+
     EXPECT_EQ(ht_int_int.size(), 1);
     EXPECT_FALSE(ht_int_int.empty());
     ASSERT_NE(it, ht_int_int.end());
@@ -43,9 +63,11 @@ TEST(ChainHashSuite, InsertSingleElement) {
 
 TEST(ChainHashSuite, InsertMultipleElements) {
     IntIntChainHash ht_int_int;
+
     ht_int_int.insert(1, 10);
     ht_int_int.insert(2, 20);
     ht_int_int.insert(3, 30);
+
     EXPECT_EQ(ht_int_int.size(), 3);
     EXPECT_EQ(ht_int_int.at(1), 10);
     EXPECT_EQ(ht_int_int.at(2), 20);
@@ -54,72 +76,87 @@ TEST(ChainHashSuite, InsertMultipleElements) {
 
 TEST(ChainHashSuite, InsertDuplicateKey) {
     IntIntChainHash ht_int_int;
+
     ht_int_int.insert(1, 10);
+
     EXPECT_THROW(ht_int_int.insert(1, 20), std::runtime_error);
-    EXPECT_EQ(ht_int_int.size(), 1); // Размер не должен измениться
-    EXPECT_EQ(ht_int_int.at(1), 10); // Значение не должно измениться
+    EXPECT_EQ(ht_int_int.size(), 1);
+    EXPECT_EQ(ht_int_int.at(1), 10);
 }
 
 TEST(ChainHashSuite, InsertStringKeys) {
     StringIntChainHash ht_string_int;
+
     ht_string_int.insert("apple", 1);
     ht_string_int.insert("banana", 2);
+    
     EXPECT_EQ(ht_string_int.size(), 2);
     EXPECT_EQ(ht_string_int.at("apple"), 1);
     EXPECT_EQ(ht_string_int.at("banana"), 2);
 }
 
-// Тесты для at
 TEST(ChainHashSuite, AtExistingKey) {
     IntIntChainHash ht_int_int;
+    
     ht_int_int.insert(1, 10);
     ht_int_int.insert(2, 20);
+    
     EXPECT_EQ(ht_int_int.at(1), 10);
     EXPECT_EQ(ht_int_int.at(2), 20);
 }
 
 TEST(ChainHashSuite, AtNonExistingKey) {
     IntIntChainHash ht_int_int;
+    
     ht_int_int.insert(1, 10);
+    
     EXPECT_THROW(ht_int_int.at(2), std::out_of_range);
 }
 
 TEST(ChainHashSuite, AtModifyValue) {
     IntIntChainHash ht_int_int;
+    
     ht_int_int.insert(1, 10);
     ht_int_int.at(1) = 100;
+    
     EXPECT_EQ(ht_int_int.at(1), 100);
 }
 
-// Тесты для operator[]
 TEST(ChainHashSuite, OperatorSquareBracketsAccessExisting) {
     IntIntChainHash ht_int_int;
+   
     ht_int_int.insert(1, 10);
+    
     EXPECT_EQ(ht_int_int[1], 10);
-    ht_int_int[1] = 100; // Modify
+    
+    ht_int_int[1] = 100;
     EXPECT_EQ(ht_int_int[1], 100);
-    EXPECT_EQ(ht_int_int.size(), 1); // Size should not change
+    EXPECT_EQ(ht_int_int.size(), 1);
 }
 
 TEST(ChainHashSuite, OperatorSquareBracketsInsertNew) {
     IntIntChainHash ht_int_int;
-    ht_int_int[1] = 10; // Insert new
+    
+    ht_int_int[1] = 10;
+    
     EXPECT_EQ(ht_int_int.size(), 1);
-    EXPECT_EQ(ht_int_int.at(1), 10); // Check with at
+    EXPECT_EQ(ht_int_int.at(1), 10);
 
-    ht_int_int[2]; // Insert new with default constructed value
+    ht_int_int[2];
     EXPECT_EQ(ht_int_int.size(), 2);
-    EXPECT_EQ(ht_int_int.at(2), 0); // Default for int
+    EXPECT_EQ(ht_int_int.at(2), 0);
 
     StringIntChainHash ht_string_int;
+    
     ht_string_int["test"];
+    
     EXPECT_EQ(ht_string_int.size(), 1);
-    EXPECT_EQ(ht_string_int.at("test"), 0); // Default for int
+    EXPECT_EQ(ht_string_int.at("test"), 0);
 }
 
-// Тесты для erase
 TEST(ChainHashSuite, EraseExistingKey) {
     IntIntChainHash ht_int_int;
+
     ht_int_int.insert(1, 10);
     ht_int_int.insert(2, 20);
     ht_int_int.insert(3, 30);
@@ -127,19 +164,17 @@ TEST(ChainHashSuite, EraseExistingKey) {
     auto it = ht_int_int.erase(2);
     EXPECT_EQ(ht_int_int.size(), 2);
     EXPECT_THROW(ht_int_int.at(2), std::out_of_range);
-    // Проверка возвращаемого итератора зависит от порядка элементов и бакетов
-    // Для простоты проверим, что элемент удален
     auto find_it = ht_int_int.find(2);
     EXPECT_EQ(find_it, ht_int_int.end());
-
-    // Проверим, что остальные на месте
     EXPECT_EQ(ht_int_int.at(1), 10);
     EXPECT_EQ(ht_int_int.at(3), 30);
 }
 
 TEST(ChainHashSuite, EraseNonExistingKey) {
     IntIntChainHash ht_int_int;
+    
     ht_int_int.insert(1, 10);
+    
     auto it = ht_int_int.erase(2);
     EXPECT_EQ(ht_int_int.size(), 1);
     EXPECT_EQ(it, ht_int_int.end());
@@ -147,7 +182,9 @@ TEST(ChainHashSuite, EraseNonExistingKey) {
 
 TEST(ChainHashSuite, EraseLastElement) {
     IntIntChainHash ht_int_int;
+    
     ht_int_int.insert(1, 10);
+    
     auto it = ht_int_int.erase(1);
     EXPECT_EQ(ht_int_int.size(), 0);
     EXPECT_TRUE(ht_int_int.empty());
@@ -155,7 +192,8 @@ TEST(ChainHashSuite, EraseLastElement) {
 }
 
 TEST(ChainHashSuite, EraseReturnsCorrectIterator) {
-    ChainHash<int, int, std::hash<int>> ht_custom_hash(1); // Все в один бакет
+    ChainHash<int, int, std::hash<int>> ht_custom_hash(1);
+    
     ht_custom_hash.insert(1, 10);
     ht_custom_hash.insert(2, 20);
     ht_custom_hash.insert(3, 30);
@@ -177,11 +215,12 @@ TEST(ChainHashSuite, EraseReturnsCorrectIterator) {
     EXPECT_EQ(ht_custom_hash.size(), 0);
 }
 
-// Тесты для find
 TEST(ChainHashSuite, FindExistingKey) {
     IntIntChainHash ht_int_int;
+    
     ht_int_int.insert(1, 10);
     ht_int_int.insert(2, 20);
+    
     auto it = ht_int_int.find(1);
     ASSERT_NE(it, ht_int_int.end());
     EXPECT_EQ(it->first, 1);
@@ -195,20 +234,23 @@ TEST(ChainHashSuite, FindExistingKey) {
 
 TEST(ChainHashSuite, FindNonExistingKey) {
     IntIntChainHash ht_int_int;
+    
     ht_int_int.insert(1, 10);
+    
     auto it = ht_int_int.find(2);
     EXPECT_EQ(it, ht_int_int.end());
 }
 
-// Тесты для size и empty
 TEST(ChainHashSuite, SizeAndEmptyInitially) {
     IntIntChainHash ht_int_int;
+    
     EXPECT_EQ(ht_int_int.size(), 0);
     EXPECT_TRUE(ht_int_int.empty());
 }
 
 TEST(ChainHashSuite, SizeAndEmptyAfterOperations) {
     IntIntChainHash ht_int_int;
+    
     ht_int_int.insert(1, 10);
     EXPECT_EQ(ht_int_int.size(), 1);
     EXPECT_FALSE(ht_int_int.empty());
@@ -224,14 +266,15 @@ TEST(ChainHashSuite, SizeAndEmptyAfterOperations) {
     EXPECT_TRUE(ht_int_int.empty());
 }
 
-// Тесты для итераторов
 TEST(ChainHashSuite, IteratorBeginEndOnEmpty) {
     IntIntChainHash ht_int_int;
+    
     EXPECT_EQ(ht_int_int.begin(), ht_int_int.end());
 }
 
 TEST(ChainHashSuite, IteratorBasicIteration) {
     IntIntChainHash ht_int_int;
+    
     ht_int_int.insert(1, 10);
     ht_int_int.insert(2, 20);
     ht_int_int.insert(3, 30);
@@ -250,6 +293,7 @@ TEST(ChainHashSuite, IteratorBasicIteration) {
 
 TEST(ChainHashSuite, IteratorRangeBasedFor) {
     IntIntChainHash ht_int_int;
+    
     ht_int_int.insert(1, 10);
     ht_int_int.insert(2, 20);
     ht_int_int.insert(3, 30);
@@ -268,7 +312,9 @@ TEST(ChainHashSuite, IteratorRangeBasedFor) {
 
 TEST(ChainHashSuite, IteratorDereferenceAndArrow) {
     IntIntChainHash ht_int_int;
+    
     ht_int_int.insert(1, 10);
+    
     auto it = ht_int_int.begin();
     ASSERT_NE(it, ht_int_int.end());
     EXPECT_EQ((*it).first, 1);
@@ -279,6 +325,7 @@ TEST(ChainHashSuite, IteratorDereferenceAndArrow) {
 
 TEST(ChainHashSuite, IteratorIncrement) {
     IntIntChainHash ht_small_buckets(2);
+    
     ht_small_buckets.insert(1, 10);
     ht_small_buckets.insert(2, 20);
     ht_small_buckets.insert(3, 30);
@@ -288,10 +335,11 @@ TEST(ChainHashSuite, IteratorIncrement) {
     for (auto it = ht_small_buckets.begin(); it != ht_small_buckets.end();) {
         keys_ordered.push_back(it->first);
         auto prev_it = it++;
-        if (it != ht_small_buckets.end()) { // Добавим проверку, чтобы не сравнивать с end() если prev_it был последним
+        if (it != ht_small_buckets.end()) {
             EXPECT_NE(prev_it, it);
         }
     }
+    
     EXPECT_EQ(keys_ordered.size(), 4);
     std::sort(keys_ordered.begin(), keys_ordered.end());
     EXPECT_EQ(keys_ordered[0], 1);
@@ -316,12 +364,13 @@ TEST(ChainHashSuite, IteratorEquality) {
     EXPECT_TRUE(it_non_exist == it_end);
 }
 
-// Тесты для rehash (косвенные)
 TEST(ChainHashSuite, RehashOnInsert) {
     IntIntChainHash ht(1);
+    
     ht.insert(1, 10);
     ht.insert(2, 20);
     ht.insert(3, 30);
+    
     EXPECT_EQ(ht.size(), 3);
     EXPECT_EQ(ht.at(1), 10);
     EXPECT_EQ(ht.at(2), 20);
@@ -339,9 +388,11 @@ TEST(ChainHashSuite, RehashOnInsert) {
 
 TEST(ChainHashSuite, RehashOnOperatorSquareBracket) {
     IntIntChainHash ht(1);
+    
     ht[1] = 10;
     ht[2] = 20;
     ht[3] = 30;
+    
     EXPECT_EQ(ht.size(), 3);
     EXPECT_EQ(ht.at(1), 10);
     EXPECT_EQ(ht.at(2), 20);
@@ -357,23 +408,17 @@ TEST(ChainHashSuite, RehashOnOperatorSquareBracket) {
     EXPECT_EQ(ht.at(5), 50);
 }
 
-TEST(ChainHashSuite, RehashToMinimumSizeIfNewCountIsSmall) {
-    // Эта ветка в rehash (new_bucket_count < 1) труднодостижима при текущей логике вызова.
-    SUCCEED() << "Internal rehash branch for new_bucket_count < 1 is hard to test without API change.";
-}
-
-// Тест для hash_function с пустыми бакетами (пограничный случай)
 TEST(ChainHashSuite, HashFunctionOnEmptyBuckets) {
-    // Эта ветка `if (buckets.empty())` в `hash_function` недостижима, т.к. конструктор всегда создает бакеты.
     IntIntChainHash ht_int_int;
+    
     ht_int_int.insert(1, 10);
+    
     EXPECT_EQ(ht_int_int.at(1), 10);
-    SUCCEED() << "Internal hash_function branch for buckets.empty() is effectively unreachable.";
 }
 
-// Тест для итератора, когда он должен пропускать пустые бакеты
 TEST(ChainHashSuite, IteratorSkipsEmptyBuckets) {
     IntIntChainHash ht_skip(3);
+   
     ht_skip.insert(3, 30);
     ht_skip.insert(1, 10);
     ht_skip.insert(5, 50);
@@ -383,6 +428,7 @@ TEST(ChainHashSuite, IteratorSkipsEmptyBuckets) {
         keys.push_back(p.first);
     }
     std::sort(keys.begin(), keys.end());
+    
     ASSERT_EQ(keys.size(), 3);
     EXPECT_EQ(keys[0], 1);
     EXPECT_EQ(keys[1], 3);
@@ -395,6 +441,7 @@ TEST(ChainHashSuite, IteratorSkipsEmptyBuckets) {
         keys.push_back(p.first);
     }
     std::sort(keys.begin(), keys.end());
+    
     ASSERT_EQ(keys.size(), 2);
     EXPECT_EQ(keys[0], 3);
     EXPECT_EQ(keys[1], 5);
@@ -405,7 +452,6 @@ TEST(ChainHashSuite, IteratorSkipsEmptyBuckets) {
     EXPECT_TRUE(is_3_or_5);
 }
 
-// Пример теста с пользовательским типом ключа и хешером
 struct MyCustomKey {
     int id;
     std::string name;

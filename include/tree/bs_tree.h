@@ -14,13 +14,11 @@ public:
     using Node = TreeNode<TKey, TValue>;
     using Color = typename Node::Color;
 
-    // --- Итератор ---
     class Iterator {
     private:
         Node* current_node;
-        std::stack<Node*> traversal_stack; // Для итеративного in-order обхода
-
-        // Вспомогательная функция для перемещения к самому левому узлу от данного
+        std::stack<Node*> traversal_stack;
+        
         void push_left_branch(Node* node) {
             while (node != nullptr) {
                 traversal_stack.push(node);
@@ -29,40 +27,30 @@ public:
         }
 
     public:
-        // Типы для итератора (стандартные имена)
-        using iterator_category = std::forward_iterator_tag; // Или input_iterator_tag, если только чтение
-        using value_type = std::pair<const TKey, TValue>; // Возвращаем пару ключ-значение
+
+        using iterator_category = std::forward_iterator_tag;
+        using value_type = std::pair<const TKey, TValue>;
         using difference_type = std::ptrdiff_t;
-        using pointer = value_type*; // Или Node* если хотим возвращать узел
-        using reference = value_type&; // Или Node&
+        using pointer = value_type*;
+        using reference = value_type&;
 
         Iterator(Node* start_node, Node* root_of_tree_for_begin = nullptr) : current_node(nullptr) {
-            if (start_node == nullptr && root_of_tree_for_begin != nullptr) { // Конструктор для begin()
+            if (start_node == nullptr && root_of_tree_for_begin != nullptr) {
                 push_left_branch(root_of_tree_for_begin);
                 if (!traversal_stack.empty()) {
                     current_node = traversal_stack.top();
                 }
                 else {
-                    current_node = nullptr; // Дерево пусто
+                    current_node = nullptr;
                 }
             }
-            else { // Конструктор для end() или для итератора на конкретный узел (пока не используется)
-                current_node = start_node; // start_node будет nullptr для end()
+            else {
+                current_node = start_node;
             }
         }
 
-        // Конструктор по умолчанию (для end())
         Iterator() : current_node(nullptr) {}
 
-
-        // Доступ к данным
-        // Возвращаем пару, чтобы ключ был const, а значение можно было менять (если Node* не const)
-        // Если хотим возвращать сам узел: Node& operator*() const { return *current_node; }
-        //                               Node* operator->() const { return current_node; }
-        // Но тогда TValue должно быть доступно для изменения через Node.value
-        // Для простоты и безопасности, вернем копию ключа и ссылку на значение
-        // (или копию значения, если current_node - const)
-        // Давайте вернем указатель на узел, как в вашем референсе, для большей гибкости
         Node& operator*() const {
             if (!current_node) throw std::runtime_error("Dereferencing end or null iterator");
             return *current_node;
@@ -72,80 +60,62 @@ public:
             return current_node;
         }
 
-        // Префиксный инкремент
         Iterator& operator++() {
-            if (!current_node) { // Уже end() или неинициализированный
-                // Можно бросить исключение или ничего не делать
-                // throw std::runtime_error("Incrementing end or null iterator");
+            if (!current_node) {
                 return *this;
             }
-            // Если есть правое поддерево, идем в него и затем налево до конца
             if (current_node->right != nullptr) {
-                // Перед тем как идти вправо, нужно извлечь текущий узел из стека, если он там был
                 if (!traversal_stack.empty() && traversal_stack.top() == current_node) {
                     traversal_stack.pop();
                 }
                 push_left_branch(current_node->right);
             }
             else {
-                // Если правого поддерева нет, следующий элемент - это один из предков в стеке
                 if (!traversal_stack.empty() && traversal_stack.top() == current_node) {
-                    traversal_stack.pop(); // Удаляем текущий из стека
+                    traversal_stack.pop();
                 }
             }
-
             if (!traversal_stack.empty()) {
-                current_node = traversal_stack.top(); // Следующий элемент - вершина стека
+                current_node = traversal_stack.top();
             }
             else {
-                current_node = nullptr; // Достигли конца обхода
+                current_node = nullptr;
             }
             return *this;
         }
 
-        // Постфиксный инкремент
         Iterator operator++(int) {
             Iterator temp = *this;
             ++(*this);
             return temp;
         }
 
-        // Сравнение
         bool operator==(const Iterator& other) const {
             return current_node == other.current_node;
-            // Для более строгого сравнения можно также сравнивать содержимое стека,
-            // но для обычного in-order обхода сравнения current_node достаточно,
-            // особенно если end() итератор имеет current_node = nullptr.
         }
+
         bool operator!=(const Iterator& other) const {
             return !(*this == other);
         }
     };
 
-    // Методы для получения итераторов
     Iterator begin() const {
-        // Для begin(), мы должны найти самый левый узел.
-        // Инициализируем стек всеми левыми потомками корня.
         return Iterator(nullptr, root_node);
     }
     Iterator end() const {
-        return Iterator(nullptr); // end() итератор указывает на nullptr
+        return Iterator(nullptr);
     }
 
 
 protected:
     Node* root_node = nullptr;
 
-    // --- Вспомогательные рекурсивные методы ---
-    // (insert_node_recursive, find_node_recursive, find_min_node_recursive, erase_node_recursive - как раньше)
-    // ... (код этих методов без изменений) ...
     virtual Node* insert_node_recursive(Node* current, Node* parent_node, const TKey& key, const TValue& value, Node*& inserted_node_ref) {
         if (current == nullptr) {
             inserted_node_ref = new Node(key, value);
             inserted_node_ref->parent = parent_node;
             return inserted_node_ref;
         }
-
         if (key < current->key) {
             current->left = insert_node_recursive(current->left, current, key, value, inserted_node_ref);
         }
@@ -270,6 +240,7 @@ protected:
     void set_node_color(Node* n, Color c) { if (n) n->color = c; }
 
 private:
+
     void collect_keys_inorder_recursive(Node* node, std::vector<TKey>& keys_vec) const {
         if (node) {
             collect_keys_inorder_recursive(node->left, keys_vec);

@@ -1,20 +1,16 @@
 #pragma once
 
 #include "bs_tree.h"
-#include <algorithm> // std::max
-#include <cmath>     // std::abs
+#include <algorithm>
+#include <cmath>
 
 template <class TKey, class TValue>
 class AVLTree : public BSTree<TKey, TValue> {
 private:
     using Node = typename BSTree<TKey, TValue>::Node;
     using BSTree<TKey, TValue>::root_node;
-    // Базовые вращения будут вызываться из этого класса
-    // using BSTree<TKey, TValue>::perform_rotate_left_base; 
-    // using BSTree<TKey, TValue>::perform_rotate_right_base;
 
-    // --- AVL-специфичные вспомогательные методы ---
-    void update_height(Node* node) { // Специфично для AVL
+    void update_height(Node* node) {
         if (node) {
             int left_h = node->left ? node->left->height : -1;
             int right_h = node->right ? node->right->height : -1;
@@ -22,7 +18,7 @@ private:
         }
     }
 
-    int get_height(Node* node) const { // Специфично для AVL
+    int get_height(Node* node) const {
         return node ? node->height : -1;
     }
 
@@ -30,16 +26,15 @@ private:
         return node ? (get_height(node->left) - get_height(node->right)) : 0;
     }
 
-    // Вращения с обновлением высот
     Node* avl_rotate_left(Node* x) {
-        Node* y = this->perform_rotate_left_base(x); // Используем базовое вращение
-        update_height(x); // Обновляем высоту бывшего корня поддерева
-        update_height(y); // Обновляем высоту нового корня поддерева
+        Node* y = this->perform_rotate_left_base(x);
+        update_height(x);
+        update_height(y);
         return y;
     }
 
     Node* avl_rotate_right(Node* y) {
-        Node* x = this->perform_rotate_right_base(y); // Используем базовое вращение
+        Node* x = this->perform_rotate_right_base(y);
         update_height(y);
         update_height(x);
         return x;
@@ -70,10 +65,8 @@ private:
         if (current == nullptr) {
             inserted_node_ref = new Node(key, value);
             inserted_node_ref->parent = parent_node;
-            // update_height(inserted_node_ref); // Высота 0 по умолчанию
             return inserted_node_ref;
         }
-
         if (key < current->key) {
             current->left = insert_avl_recursive(current->left, current, key, value, inserted_node_ref);
         }
@@ -91,7 +84,6 @@ private:
             erased_flag = false;
             return nullptr;
         }
-
         if (key < current->key) {
             current->left = erase_avl_recursive(current->left, key, erased_flag);
         }
@@ -121,34 +113,28 @@ private:
 
     int check_avl_balance_recursive(Node* node) const {
         if (node == nullptr) {
-            return -1; // Высота пустого дерева
+            return -1;
         }
 
         int left_height = check_avl_balance_recursive(node->left);
-        if (left_height == -2) return -2; // Нарушение в левом поддереве
+        if (left_height == -2) return -2;
 
         int right_height = check_avl_balance_recursive(node->right);
-        if (right_height == -2) return -2; // Нарушение в правом поддереве
+        if (right_height == -2) return -2;
 
         if (std::abs(left_height - right_height) > 1) {
-            // std::cerr << "AVL property violated at node " << node->key 
-            //           << " (LH: " << left_height << ", RH: " << right_height << ")" << std::endl;
-            return -2; // Нарушение AVL
+            return -2;
         }
-
-        // Проверка, что сохраненная высота корректна (если вы доверяете вычисленным)
         int calculated_height = 1 + std::max(left_height, right_height);
         if (node->height != calculated_height) {
-            // std::cerr << "AVL height mismatch at node " << node->key 
-            //           << " (Stored: " << node->height << ", Calc: " << calculated_height << ")" << std::endl;
-            return -2; // Несоответствие высоты
+            return -2;
         }
 
         return calculated_height;
     }
 
-
 public:
+
     AVLTree() = default;
 
     bool insert(const TKey& key, const TValue& value) override {

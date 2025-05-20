@@ -22,7 +22,6 @@ std::vector<T> toVector(const CyclicList<T>& list) {
     return result;
 }
 
-// Helper function to check equality of CyclicList and vector
 template <typename T>
 bool areEqual(const CyclicList<T>& list, const std::vector<T>& vec) {
     return toVector(list) == vec;
@@ -31,13 +30,16 @@ bool areEqual(const CyclicList<T>& list, const std::vector<T>& vec) {
 
 TEST(CyclicList, DefaultConstructor) {
     CyclicList<int> list;
+    
     ASSERT_TRUE(list.empty());
     ASSERT_EQ(list.size(), 0);
 }
 
 TEST(CyclicList, PushBack) {
     CyclicList<int> list;
+    
     list.push_back(1);
+    
     ASSERT_FALSE(list.empty());
     ASSERT_EQ(list.size(), 1);
     ASSERT_EQ(list[0], 1);
@@ -59,7 +61,9 @@ TEST(CyclicList, PushBack) {
 
 TEST(CyclicList, PushFront) {
     CyclicList<int> list;
+    
     list.push_front(1);
+    
     ASSERT_FALSE(list.empty());
     ASSERT_EQ(list.size(), 1);
     ASSERT_EQ(list[0], 1);
@@ -81,11 +85,12 @@ TEST(CyclicList, PushFront) {
 
 TEST(CyclicList, PopBack) {
     CyclicList<int> list;
+    
     list.push_back(1);
     list.push_back(2);
     list.push_back(3);
-
     list.pop_back();
+   
     ASSERT_EQ(list.size(), 2);
     ASSERT_EQ(list[0], 1);
     ASSERT_EQ(list[1], 2);
@@ -102,6 +107,7 @@ TEST(CyclicList, PopBack) {
 
 TEST(CyclicList, PopFront) {
     CyclicList<int> list;
+    
     list.push_back(1);
     list.push_back(2);
     list.push_back(3);
@@ -140,6 +146,7 @@ TEST(CyclicList, Size) {
 
 TEST(CyclicList, IndexOperator) {
     CyclicList<int> list;
+    
     list.push_back(10);
     list.push_back(20);
     list.push_back(30);
@@ -161,6 +168,7 @@ TEST(CyclicList, IndexOperator) {
 
 TEST(CyclicList, Find) {
     CyclicList<int> list;
+    
     list.push_back(10);
     list.push_back(20);
     list.push_back(30);
@@ -178,6 +186,7 @@ TEST(CyclicList, Find) {
 
 TEST(CyclicList, Insert) {
     CyclicList<int> list;
+    
     list.insert(0, 10);
     ASSERT_TRUE(areEqual(list, { 10 }));
 
@@ -196,6 +205,7 @@ TEST(CyclicList, Insert) {
 
 TEST(CyclicList, Erase) {
     CyclicList<int> list;
+    
     list.push_back(10);
     list.push_back(20);
     list.push_back(30);
@@ -222,6 +232,7 @@ TEST(CyclicList, Erase) {
 
 TEST(CyclicList, CopyConstructor) {
     CyclicList<int> list;
+    
     list.push_back(1);
     list.push_back(2);
     list.push_back(3);
@@ -243,6 +254,7 @@ TEST(CyclicList, CopyConstructor) {
 
 TEST(CyclicList, AssignmentOperator) {
     CyclicList<int> list;
+    
     list.push_back(1);
     list.push_back(2);
     list.push_back(3);
@@ -278,6 +290,7 @@ TEST(CyclicList, AssignmentOperator) {
 
 TEST(CyclicList, Clear) {
     CyclicList<int> list;
+    
     list.push_back(1);
     list.push_back(2);
     list.push_back(3);
@@ -293,6 +306,7 @@ TEST(CyclicList, Clear) {
 
 TEST(CyclicList, Sort) {
     CyclicList<int> list;
+   
     list.push_back(3);
     list.push_back(1);
     list.push_back(4);
@@ -315,6 +329,7 @@ TEST(CyclicList, Sort) {
 
 TEST(CyclicList, Reverse) {
     CyclicList<int> list;
+    
     list.push_back(1);
     list.push_back(2);
     list.push_back(3);
@@ -331,6 +346,7 @@ TEST(CyclicList, Reverse) {
 
 TEST(CyclicList, Count) {
     CyclicList<int> list;
+    
     list.push_back(1);
     list.push_back(2);
     list.push_back(2);
@@ -346,10 +362,9 @@ TEST(CyclicList, Count) {
     ASSERT_EQ(empty_list.count(5), 0);
 }
 
-// Heavy tests to try to trigger errors
-
 TEST(CyclicList, LargePushBack) {
     CyclicList<int> list;
+    
     std::vector<int> expected;
     const int numElements = 10000;
 
@@ -364,12 +379,13 @@ TEST(CyclicList, LargePushBack) {
 
 TEST(CyclicList, LargePushFront) {
     CyclicList<int> list;
+    
     std::vector<int> expected;
     const int numElements = 10000;
 
     for (int i = 0; i < numElements; ++i) {
         list.push_front(i);
-        expected.insert(expected.begin(), i); // Insert at beginning to match push_front
+        expected.insert(expected.begin(), i);
     }
 
     ASSERT_EQ(list.size(), numElements);
@@ -378,6 +394,7 @@ TEST(CyclicList, LargePushFront) {
 
 TEST(CyclicList, LargeInsert) {
     CyclicList<int> list;
+    
     std::vector<int> expected;
     const int numElements = 5000;
 
@@ -392,6 +409,7 @@ TEST(CyclicList, LargeInsert) {
 
 TEST(CyclicList, LargeErase) {
     CyclicList<int> list;
+    
     std::vector<int> expected;
     const int numElements = 5000;
 
@@ -414,29 +432,30 @@ TEST(CyclicList, LargeErase) {
 
 TEST(CyclicList, RandomOperations) {
     CyclicList<int> list;
+    
     std::vector<int> expected;
     const int numOperations = 2000;
     std::random_device rd;
     std::mt19937 gen(rd());
-    std::uniform_int_distribution<> distrib(0, 5); // Choose operation: 0-push_back, 1-push_front, 2-insert, 3-erase, 4-sort, 5-reverse
+    std::uniform_int_distribution<> distrib(0, 5);
 
     for (int i = 0; i < numOperations; ++i) {
         int operation = distrib(gen);
 
         switch (operation) {
-        case 0: { // push_back
+        case 0: {
             int value = i;
             list.push_back(value);
             expected.push_back(value);
             break;
         }
-        case 1: { // push_front
+        case 1: {
             int value = i;
             list.push_front(value);
             expected.insert(expected.begin(), value);
             break;
         }
-        case 2: { // insert
+        case 2: {
             if (!expected.empty()) {
                 std::uniform_int_distribution<> insertDistrib(0, expected.size());
                 size_t index = insertDistrib(gen);
@@ -446,7 +465,6 @@ TEST(CyclicList, RandomOperations) {
                     expected.insert(expected.begin() + index, value);
                 }
                 catch (const std::out_of_range& e) {
-                    // Ignore out of range errors since they are expected sometimes
                 }
             }
             else {
@@ -456,7 +474,7 @@ TEST(CyclicList, RandomOperations) {
             }
             break;
         }
-        case 3: { // erase
+        case 3: {
             if (!expected.empty()) {
                 std::uniform_int_distribution<> eraseDistrib(0, expected.size() - 1);
                 size_t index = eraseDistrib(gen);
@@ -465,24 +483,23 @@ TEST(CyclicList, RandomOperations) {
                     expected.erase(expected.begin() + index);
                 }
                 catch (const std::out_of_range& e) {
-                    // Ignore out of range errors since they are expected sometimes
                 }
             }
             break;
         }
-        case 4: { // sort
+        case 4: {
             list.sort();
             std::sort(expected.begin(), expected.end());
             break;
         }
-        case 5: { // reverse
+        case 5: {
             list.reverse();
             std::reverse(expected.begin(), expected.end());
             break;
         }
         }
 
-        if (i % 1000 == 0) { // Check every 1000 operations to avoid excessive overhead
+        if (i % 1000 == 0) {
             ASSERT_EQ(list.size(), expected.size());
             ASSERT_TRUE(areEqual(list, expected));
         }
@@ -491,29 +508,27 @@ TEST(CyclicList, RandomOperations) {
 
 TEST(CyclicList, SelfAssignment) {
     CyclicList<int> list;
+   
     list.push_back(1);
     list.push_back(2);
     list.push_back(3);
-    list = list; // Self-assignment
+    list = list; 
+
     ASSERT_TRUE(areEqual(list, { 1, 2, 3 }));
 
     CyclicList<int> emptyList;
-    emptyList = emptyList; // Self-assignment on empty list
+    emptyList = emptyList;
     ASSERT_TRUE(emptyList.empty());
 }
 
 TEST(CyclicList, MoveConstructorNotImplemented) {
     CyclicList<int> list;
+   
     list.push_back(1);
     list.push_back(2);
     list.push_back(3);
-
-    // This will call the copy constructor, since move constructor is not explicitly defined
     CyclicList<int> movedList = std::move(list);
 
-    // After the "move," the original list 'list' should still be valid in some state
-    // (it's implementation defined what that state is if there's no explicit move constructor)
     ASSERT_TRUE(areEqual(movedList, { 1, 2, 3 }));
-    //The code does NOT define move constructor, so `list` will contain {1,2,3}. If move constructor was defined, list would be empty.
     ASSERT_TRUE(areEqual(list, { 1, 2, 3 }));
 }
