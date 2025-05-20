@@ -30,7 +30,7 @@ public:
 };
 
 
-class Polynom{
+class Polynom {
 private:
 	CyclicList<Monom> terms;
 

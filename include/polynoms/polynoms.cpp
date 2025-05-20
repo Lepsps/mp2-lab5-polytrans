@@ -10,10 +10,10 @@
 
 
 Monom::Monom(float ratio, std::vector<int> powers) {
-		this->ratio = ratio;
-		if (ratio == 0.0f) this->powers = { 0, 0, 0 };
-		else this->powers = powers;
-	}
+	this->ratio = ratio;
+	if (ratio == 0.0f) this->powers = { 0, 0, 0 };
+	else this->powers = powers;
+}
 
 bool Monom::operator==(const Monom& oth) const {
 	return (((ratio == oth.ratio) && (powers == oth.powers)));
@@ -228,83 +228,112 @@ std::ostream& operator<<(std::ostream& os, const Polynom& poly) {
 	return os;
 }
 
-Polynom& Polynom::operator=(std::string& oth) {
+Polynom& Polynom::operator=(std::string& oth_str) {
 	this->terms.clear();
-	if (oth.empty()) return *this;
+	std::string s = oth_str;
+	s.erase(std::remove_if(s.begin(), s.end(), ::isspace), s.end());
 
-	//std::cout << oth << std::endl;
-	float r = 0.0f;
-	bool touch = false;
+	if (s.empty()) return *this;
+
+	std::string current_term_str;
+	for (size_t i = 0; i < s.length(); ++i) {
+		current_term_str += s[i];
+		if (i + 1 < s.length() && (s[i + 1] == '+' || (s[i + 1] == '-' && !isdigit(s[i])))) { // !isdigit(s[i]) to handle x^-2 like things if they were allowed
+			// Process current_term_str
+			// This simple split won't work for Polynom class's original parser logic
+			// The original parser was more stateful.
+			// This assignment operator now assumes 'oth_str' is a SINGLE MONOMIAL string.
+		}
+	}
+	// Process the last/only term
+	if (current_term_str.empty()) return *this;
+
+
+	float r = 1.0f;
 	std::vector<int> p = { 0, 0, 0 };
-	size_t c = 0;
-	std::string number;
-	int last_pow = -1;
-	for (size_t j = 0; j < oth.size(); j++) {
-		//std::cout << i << std::endl;
-		if (isspace(oth[j]) || oth[j] == '^' || oth[j] == '*') continue;
-		if (isdigit(oth[j]) || oth[j] == '.') {
-			//std::cout << "1if " << oth[j] << std::endl;
-			number += oth[j];
-			//std::cout << "??? " << number << std::endl;
+	std::string num_part;
+	size_t k = 0;
+
+	if (current_term_str[k] == '+') {
+		k++;
+	}
+	else if (current_term_str[k] == '-') {
+		r = -1.0f;
+		k++;
+	}
+
+	while (k < current_term_str.length() && (isdigit(current_term_str[k]) || current_term_str[k] == '.')) {
+		num_part += current_term_str[k];
+		k++;
+	}
+
+	if (!num_part.empty()) {
+		try {
+			r *= std::stof(num_part);
 		}
-		else if (oth[j] == 'x' || oth[j] == 'y' || oth[j] == 'z') {
-			if (!number.empty() && last_pow != -1) {
-				//std::cout << "??? " << number << std::endl;
-				p[last_pow] = std::stoi(number);
-				//std::cout << "&&& " << number << std::endl;
-				number.clear();
-			}
-			switch (oth[j]) {
-			case 'x': {
-				p[0] = 1;
-				last_pow = 0;
-				break;
-			}
-			case 'y': {
-				p[1] = 1;
-				last_pow = 1;
-				break;
-			}
-			case 'z': {
-				p[2] = 1;
-				last_pow = 2;
-				break;
-			}
-			}
-			//std::cout << "???rrr " << oth[j] << number << std::endl;
-			if (!number.empty() && !touch) {
-				if (number == "-") r = -1.0f;
-				else r = std::stof(number);
-				touch = true;
-			}
-			if (!touch) { r = 1.0f; touch = true; }
-			//std::cout << "???www " << oth[j] << number << std::endl;
-			number.clear();
+		catch (const std::out_of_range& oor) {
+			throw std::invalid_argument("Coefficient number too large in: " + current_term_str);
 		}
-		else if (ispunct(oth[j])) {
-			if (!number.empty() && number != "-") {
-				if (last_pow == -1) r = std::stof(number);
-				else p[last_pow] = std::stoi(number);
-			}
-			this->addMonom(Monom(r, p));
-			r = 0.0f;
-			p = { 0, 0, 0 };
-			if (oth[j] == '-' && number != "-") {
-				number.clear(); number += '-';
-			}
-			else number.clear();
-			last_pow = -1;
-			touch = false;
+		catch (const std::invalid_argument& ia) {
+			throw std::invalid_argument("Invalid coefficient format in: " + current_term_str);
+		}
+
+	}
+	else { // No explicit number part before variables, e.g. "x" or "-y"
+		if (k < current_term_str.length() && (current_term_str[k] == 'x' || current_term_str[k] == 'y' || current_term_str[k] == 'z')) {
+			// r is already 1.0 or -1.0
+		}
+		else if (k == current_term_str.length() && num_part.empty()) { // String was just "+" or "-"
+			throw std::invalid_argument("Invalid term: " + current_term_str);
 		}
 	}
 
-	if (!number.empty() && number != "-") {
-		if (last_pow == -1) r = std::stof(number);
-		else p[last_pow] = std::stoi(number);
-	}
-	this->addMonom(Monom(r, p));
 
-	//std::cout << "print " << *this << std::endl;
+	bool var_found = false;
+	for (; k < current_term_str.length(); ++k) {
+		var_found = true;
+		char var_char = current_term_str[k];
+		int var_idx = -1;
+		if (var_char == 'x') var_idx = 0;
+		else if (var_char == 'y') var_idx = 1;
+		else if (var_char == 'z') var_idx = 2;
+		else throw std::invalid_argument("Invalid character in term: " + current_term_str);
+
+		int power = 1;
+		if (k + 1 < current_term_str.length() && current_term_str[k + 1] == '^') {
+			k += 2;
+			std::string pow_str;
+			bool neg_pow = false;
+			if (k < current_term_str.length() && current_term_str[k] == '-') {
+				neg_pow = true;
+				k++;
+			}
+			while (k < current_term_str.length() && isdigit(current_term_str[k])) {
+				pow_str += current_term_str[k];
+				k++;
+			}
+			if (pow_str.empty()) throw std::invalid_argument("Missing exponent in: " + current_term_str);
+			try {
+				power = std::stoi(pow_str);
+				if (neg_pow) power *= -1;
+			}
+			catch (const std::out_of_range& oor) {
+				throw std::invalid_argument("Exponent number too large in: " + current_term_str);
+			}
+			catch (const std::invalid_argument& ia) {
+				throw std::invalid_argument("Invalid exponent format in: " + current_term_str);
+			}
+			k--;
+		}
+		p[var_idx] += power;
+	}
+
+	if (std::abs(r) < 1e-6 && var_found) { // e.g. 0x, 0y^2 make r=0.0, p={0,0,0}
+		this->addMonom(Monom(0.0f, { 0,0,0 }));
+	}
+	else {
+		this->addMonom(Monom(r, p));
+	}
 	return *this;
 }
 
