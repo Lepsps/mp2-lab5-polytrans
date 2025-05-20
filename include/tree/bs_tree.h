@@ -1,254 +1,353 @@
-//#pragma once
-//
-//#include <iostream>
-//#include <stdexcept>
-//#include <algorithm>
-//#include <cmath>
-//
-//template <class TKey, class TValue>
-//class BSTree {
-//
-//	class Node {
-//
-//		friend class BSTree<TKey, TValue>;
-//
-//		TKey key;
-//		TValue value;
-//		Node* left;
-//		Node* right;
-//		Node* parent;
-//
-//	public:
-//
-//		Node(const TKey& key, const TValue& value, Node* parent = nullptr) : key(key), value(value),
-//			left(nullptr), right(nullptr), parent(parent) {
-//		};
-//
-//	};
-//
-//	Node* root;
-//
-//	void print(Node* curr) const {
-//		if (!curr) return;
-//		print(curr->left);
-//		std::cout << curr->key << " (" << curr->value << ") ";
-//		print(curr->right);
-//	}
-//
-//	Node* find(const TKey& key, Node* curr) const {
-//		if (!curr) return nullptr;
-//		if (key == curr->key) return curr;
-//		if (key > curr->key) return find(key, curr->right);
-//		return find(key, curr->left);
-//	}
-//
-//	Node* insert(const TKey& key, const TValue& value,
-//		Node* curr, Node* nodeParent) {
-//		if (!curr) return new Node(key, value, nodeParent);
-//		if (key == curr->key) throw std::runtime_error("This key is already there");
-//		if (key < curr->key) {
-//			curr->left = insert(key, value, curr->left, curr);
-//		}
-//		else {
-//			curr->right = insert(key, value, curr->right, curr);
-//		}
-//		return curr;
-//	}
-//
-//	Node* erase(const TKey& key, Node* curr) {
-//		if (!curr) throw std::runtime_error("There is no such key available");
-//		if (key < curr->key) {
-//			curr->left = erase(key, curr->left);
-//			return curr;
-//		}
-//		if (key > curr->key) {
-//			curr->right = erase(key, curr->right);
-//			return curr;
-//		}
-//		if (!curr->left && !curr->right) {
-//			delete curr;
-//			return nullptr;
-//		}
-//		if (!curr->left) {
-//			Node* tmp = curr->right;
-//			tmp->parent = curr->parent;
-//			delete curr;
-//			return tmp;
-//		}
-//		if (!curr->right) {
-//			Node* tmp = curr->left;
-//			tmp->parent = curr->parent;
-//			delete curr;
-//			return tmp;
-//		}
-//		Node* m = findMin(curr->right);
-//		curr->key = m->key;
-//		curr->value = m->value;
-//		curr->right = erase(m->key, curr->right);
-//		return curr;
-//	}
-//
-//	Node* findMin(Node* curr) const {
-//		if (!curr) return nullptr;
-//		Node* min = curr;
-//		while (min->left) {
-//			min = min->left;
-//		}
-//		return min;
-//	}
-//
-//	Node* findMax(Node* curr) const {
-//		if (!curr) return nullptr;
-//		Node* max = curr;
-//		while (max->right) {
-//			max = max->right;
-//		}
-//		return max;
-//	}
-//
-//	void clear_curr(Node* curr) {
-//		if (curr) {
-//			clear_curr(curr->left);
-//			clear_curr(curr->right);
-//			delete curr;
-//		}
-//	}
-//
-//	class Iterator {
-//
-//		Node* curr;
-//
-//	public:
-//		Iterator(Node* it) : curr(it) {}
-//
-//		Node& operator*() { return *curr; }
-//		Node* operator->() { return curr; }
-//
-//		Iterator& operator++() {
-//			if (curr->right) {
-//				curr = curr->right;
-//				while (curr->left) {
-//					curr = curr->left;
-//				}
-//			}
-//			else {
-//				if (curr->parent) {
-//					while (curr != curr->parent->left) {
-//						curr = curr->parent;
-//						if (!curr->parent) break;
-//					}
-//				}
-//				if (curr->parent) curr = curr->parent;
-//				else curr = nullptr;
-//			}
-//			return *this;
-//		}
-//
-//		Iterator operator++(int) {
-//			Iterator tmp = *this;
-//			++(*this);
-//			return tmp;
-//		}
-//
-//		friend bool operator==(const Iterator& it1, const Iterator& it2) {
-//			return it1.curr == it2.curr;
-//		}
-//
-//		friend bool operator!=(const Iterator& it1, const Iterator& it2) {
-//			return it1.curr != it2.curr;
-//		}
-//
-//		Iterator left() {
-//			if (curr != nullptr) return curr->left;
-//		}
-//
-//		Iterator right() {
-//			if (curr != nullptr) return curr->right;
-//		}
-//
-//		Iterator parent() {
-//			return curr->parent;
-//		}
-//
-//		TKey key() {
-//			return curr->key;
-//		}
-//
-//		TValue value() {
-//			return curr->value;
-//		}
-//	}
-//
-//	int is_balance(Node* curr) {
-//		if (!curr) return 0;
-//		int left_h = is_balance(curr->left);
-//		if (left_h == -1) return -1;
-//		int right_h = is_balance(curr->right);
-//		if (right_h == -1) return -1;
-//
-//		if (std::abs(left_h - right_h) > 1) return -1;
-//		return 1 + std::max(left_h, right_h);
-//	}
-//
-//public:
-//
-//	BSTree() { root = nullptr; }
-//
-//	~BSTree() { clear(); }
-//
-//	BSTree(const BSTree&) = delete;
-//
-//	BSTree& operator=(const BSTree&) = delete;
-//
-//	Iterator begin() {
-//		return Iterator(findMin(root));
-//	}
-//
-//	Iterator end() {
-//		return Iterator(nullptr);
-//	}
-//
-//	Iterator root() const {
-//		return Iterator(root);
-//	}
-//
-//	Iterator find_it(const TKey& key) const {
-//		return Iterator(find(key, root));
-//	}
-//
-//	Iterator insert_it(const TKey& key, const TValue& value) {
-//		root = insert(key, value, root, nullptr);
-//		return find_it(key);
-//	}
-//
-//	Iterator erase_it(const TKey& key) {
-//		root = erase(key, root);
-//		return root();
-//	}
-//
-//	bool empty() const { return root == nullptr; }
-//
-//	void print() const {
-//		print(root);
-//	}
-//
-//	Node* find(const TKey& key) const { return find(key, root); }
-//
-//	Node* insert(const TKey& key, const TValue& value) {
-//		root = insert(key, value, root, nullptr);
-//		return find(key);
-//	}
-//
-//	void erase(const TKey& key) { root = erase(key, root); }
-//
-//	void clear() {
-//		clear_curr(root);
-//		root = nullptr;
-//	}
-//
-//	bool is_balance() {
-//		if (!root) return true;
-//
-//		return is_balance(root) != -1;
-//	}
-//};
+#pragma once
+
+#include "tree_node.h"
+#include <stdexcept>
+#include <vector>
+#include <iostream>
+#include <algorithm> 
+#include <stack>     
+#include <functional> 
+
+template <class TKey, class TValue>
+class BSTree {
+public:
+    using Node = TreeNode<TKey, TValue>;
+    using Color = typename Node::Color;
+
+    // --- Итератор ---
+    class Iterator {
+    private:
+        Node* current_node;
+        std::stack<Node*> traversal_stack; // Для итеративного in-order обхода
+
+        // Вспомогательная функция для перемещения к самому левому узлу от данного
+        void push_left_branch(Node* node) {
+            while (node != nullptr) {
+                traversal_stack.push(node);
+                node = node->left;
+            }
+        }
+
+    public:
+        // Типы для итератора (стандартные имена)
+        using iterator_category = std::forward_iterator_tag; // Или input_iterator_tag, если только чтение
+        using value_type = std::pair<const TKey, TValue>; // Возвращаем пару ключ-значение
+        using difference_type = std::ptrdiff_t;
+        using pointer = value_type*; // Или Node* если хотим возвращать узел
+        using reference = value_type&; // Или Node&
+
+        Iterator(Node* start_node, Node* root_of_tree_for_begin = nullptr) : current_node(nullptr) {
+            if (start_node == nullptr && root_of_tree_for_begin != nullptr) { // Конструктор для begin()
+                push_left_branch(root_of_tree_for_begin);
+                if (!traversal_stack.empty()) {
+                    current_node = traversal_stack.top();
+                }
+                else {
+                    current_node = nullptr; // Дерево пусто
+                }
+            }
+            else { // Конструктор для end() или для итератора на конкретный узел (пока не используется)
+                current_node = start_node; // start_node будет nullptr для end()
+            }
+        }
+
+        // Конструктор по умолчанию (для end())
+        Iterator() : current_node(nullptr) {}
+
+
+        // Доступ к данным
+        // Возвращаем пару, чтобы ключ был const, а значение можно было менять (если Node* не const)
+        // Если хотим возвращать сам узел: Node& operator*() const { return *current_node; }
+        //                               Node* operator->() const { return current_node; }
+        // Но тогда TValue должно быть доступно для изменения через Node.value
+        // Для простоты и безопасности, вернем копию ключа и ссылку на значение
+        // (или копию значения, если current_node - const)
+        // Давайте вернем указатель на узел, как в вашем референсе, для большей гибкости
+        Node& operator*() const {
+            if (!current_node) throw std::runtime_error("Dereferencing end or null iterator");
+            return *current_node;
+        }
+        Node* operator->() const {
+            if (!current_node) throw std::runtime_error("Dereferencing end or null iterator (->)");
+            return current_node;
+        }
+
+        // Префиксный инкремент
+        Iterator& operator++() {
+            if (!current_node) { // Уже end() или неинициализированный
+                // Можно бросить исключение или ничего не делать
+                // throw std::runtime_error("Incrementing end or null iterator");
+                return *this;
+            }
+            // Если есть правое поддерево, идем в него и затем налево до конца
+            if (current_node->right != nullptr) {
+                // Перед тем как идти вправо, нужно извлечь текущий узел из стека, если он там был
+                if (!traversal_stack.empty() && traversal_stack.top() == current_node) {
+                    traversal_stack.pop();
+                }
+                push_left_branch(current_node->right);
+            }
+            else {
+                // Если правого поддерева нет, следующий элемент - это один из предков в стеке
+                if (!traversal_stack.empty() && traversal_stack.top() == current_node) {
+                    traversal_stack.pop(); // Удаляем текущий из стека
+                }
+            }
+
+            if (!traversal_stack.empty()) {
+                current_node = traversal_stack.top(); // Следующий элемент - вершина стека
+            }
+            else {
+                current_node = nullptr; // Достигли конца обхода
+            }
+            return *this;
+        }
+
+        // Постфиксный инкремент
+        Iterator operator++(int) {
+            Iterator temp = *this;
+            ++(*this);
+            return temp;
+        }
+
+        // Сравнение
+        bool operator==(const Iterator& other) const {
+            return current_node == other.current_node;
+            // Для более строгого сравнения можно также сравнивать содержимое стека,
+            // но для обычного in-order обхода сравнения current_node достаточно,
+            // особенно если end() итератор имеет current_node = nullptr.
+        }
+        bool operator!=(const Iterator& other) const {
+            return !(*this == other);
+        }
+    };
+
+    // Методы для получения итераторов
+    Iterator begin() const {
+        // Для begin(), мы должны найти самый левый узел.
+        // Инициализируем стек всеми левыми потомками корня.
+        return Iterator(nullptr, root_node);
+    }
+    Iterator end() const {
+        return Iterator(nullptr); // end() итератор указывает на nullptr
+    }
+
+
+protected:
+    Node* root_node = nullptr;
+
+    // --- Вспомогательные рекурсивные методы ---
+    // (insert_node_recursive, find_node_recursive, find_min_node_recursive, erase_node_recursive - как раньше)
+    // ... (код этих методов без изменений) ...
+    virtual Node* insert_node_recursive(Node* current, Node* parent_node, const TKey& key, const TValue& value, Node*& inserted_node_ref) {
+        if (current == nullptr) {
+            inserted_node_ref = new Node(key, value);
+            inserted_node_ref->parent = parent_node;
+            return inserted_node_ref;
+        }
+
+        if (key < current->key) {
+            current->left = insert_node_recursive(current->left, current, key, value, inserted_node_ref);
+        }
+        else if (key > current->key) {
+            current->right = insert_node_recursive(current->right, current, key, value, inserted_node_ref);
+        }
+        else {
+            throw std::runtime_error("BSTree: Duplicate key.");
+        }
+        return current;
+    }
+
+    Node* find_node_recursive(Node* current, const TKey& key) const {
+        if (current == nullptr || current->key == key) {
+            return current;
+        }
+        return (key < current->key) ? find_node_recursive(current->left, key) : find_node_recursive(current->right, key);
+    }
+
+    Node* find_min_node_recursive(Node* current) const {
+        return (current && current->left) ? find_min_node_recursive(current->left) : current;
+    }
+
+    virtual Node* erase_node_recursive(Node* current, const TKey& key, bool& erased_flag) {
+        if (current == nullptr) {
+            erased_flag = false;
+            return nullptr;
+        }
+
+        if (key < current->key) {
+            current->left = erase_node_recursive(current->left, key, erased_flag);
+        }
+        else if (key > current->key) {
+            current->right = erase_node_recursive(current->right, key, erased_flag);
+        }
+        else {
+            erased_flag = true;
+            if (current->left == nullptr) {
+                Node* temp = current->right;
+                if (temp) temp->parent = current->parent;
+                delete current;
+                return temp;
+            }
+            else if (current->right == nullptr) {
+                Node* temp = current->left;
+                if (temp) temp->parent = current->parent;
+                delete current;
+                return temp;
+            }
+            else {
+                Node* successor = find_min_node_recursive(current->right);
+                current->key = successor->key;
+                current->value = successor->value;
+                bool successor_erased_dummy;
+                current->right = erase_node_recursive(current->right, successor->key, successor_erased_dummy);
+            }
+        }
+        return current;
+    }
+
+    Node* perform_rotate_left_base(Node* x) {
+        if (!x || !x->right) return x;
+        Node* y = x->right;
+        Node* T2 = y->left;
+        y->left = x;
+        x->right = T2;
+        y->parent = x->parent;
+        x->parent = y;
+        if (T2) T2->parent = x;
+        if (y->parent == nullptr) {
+            root_node = y;
+        }
+        else if (y->parent->left == x) {
+            y->parent->left = y;
+        }
+        else {
+            y->parent->right = y;
+        }
+        update_node_height_for_avl(x);
+        update_node_height_for_avl(y);
+        return y;
+    }
+
+    Node* perform_rotate_right_base(Node* y) {
+        if (!y || !y->left) return y;
+        Node* x = y->left;
+        Node* T2 = x->right;
+        x->right = y;
+        y->left = T2;
+        x->parent = y->parent;
+        y->parent = x;
+        if (T2) T2->parent = y;
+        if (x->parent == nullptr) {
+            root_node = x;
+        }
+        else if (x->parent->left == y) {
+            x->parent->left = x;
+        }
+        else {
+            x->parent->right = x;
+        }
+        update_node_height_for_avl(y);
+        update_node_height_for_avl(x);
+        return x;
+    }
+
+    virtual void update_node_height_for_avl(Node* node) {
+        if (node) {
+            int left_h = node->left ? node->left->height : -1;
+            int right_h = node->right ? node->right->height : -1;
+            node->height = 1 + std::max(left_h, right_h);
+        }
+    }
+    int get_node_height_for_avl(Node* node) const {
+        return node ? node->height : -1;
+    }
+
+    Node* get_grandparent(Node* n) const { return (n && n->parent) ? n->parent->parent : nullptr; }
+    Node* get_sibling(Node* n) const { return (!n || !n->parent) ? nullptr : (n == n->parent->left ? n->parent->right : n->parent->left); }
+    Node* get_uncle(Node* n) const { Node* p = (n ? n->parent : nullptr); return get_grandparent(n) ? get_sibling(p) : nullptr; }
+    Color get_node_color(Node* n) const { return (n == nullptr) ? Color::BLACK : n->color; }
+    void set_node_color(Node* n, Color c) { if (n) n->color = c; }
+
+private:
+    void collect_keys_inorder_recursive(Node* node, std::vector<TKey>& keys_vec) const {
+        if (node) {
+            collect_keys_inorder_recursive(node->left, keys_vec);
+            keys_vec.push_back(node->key);
+            collect_keys_inorder_recursive(node->right, keys_vec);
+        }
+    }
+
+public:
+    BSTree() = default;
+    virtual ~BSTree() {
+        if (!root_node) return;
+        std::stack<Node*> s;
+        Node* current = root_node;
+        Node* last_visited = nullptr;
+        while (current || !s.empty()) {
+            if (current) {
+                s.push(current);
+                current = current->left;
+            }
+            else {
+                Node* peek_node = s.top();
+                if (peek_node->right && last_visited != peek_node->right) {
+                    current = peek_node->right;
+                }
+                else {
+                    delete peek_node;
+                    last_visited = s.top();
+                    s.pop();
+                }
+            }
+        }
+        root_node = nullptr;
+    }
+
+    BSTree(const BSTree&) = delete;
+    BSTree& operator=(const BSTree&) = delete;
+    BSTree(BSTree&& other) noexcept : root_node(other.root_node) { other.root_node = nullptr; }
+    BSTree& operator=(BSTree&& other) noexcept {
+        if (this != &other) {
+            this->~BSTree();
+            root_node = other.root_node;
+            other.root_node = nullptr;
+        }
+        return *this;
+    }
+
+    Node* find(const TKey& key) const {
+        return find_node_recursive(root_node, key);
+    }
+
+    virtual bool insert(const TKey& key, const TValue& value) {
+        Node* inserted_node_ref = nullptr;
+        try {
+            root_node = insert_node_recursive(root_node, nullptr, key, value, inserted_node_ref);
+            return true;
+        }
+        catch (const std::runtime_error&) {
+            return false;
+        }
+    }
+
+    virtual bool erase(const TKey& key) {
+        bool erased_flag = false;
+        if (find_node_recursive(root_node, key) == nullptr) return false;
+        root_node = erase_node_recursive(root_node, key, erased_flag);
+        return erased_flag;
+    }
+
+    std::vector<TKey> get_all_keys_inorder() const {
+        std::vector<TKey> keys_vec;
+        collect_keys_inorder_recursive(root_node, keys_vec);
+        return keys_vec;
+    }
+
+    void print_inorder_for_debug() const {
+        std::vector<TKey> keys = get_all_keys_inorder();
+        for (const auto& k : keys) { std::cout << k << " "; }
+        std::cout << std::endl;
+    }
+};
