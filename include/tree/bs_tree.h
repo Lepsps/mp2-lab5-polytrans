@@ -28,12 +28,6 @@ public:
 
     public:
 
-        using iterator_category = std::forward_iterator_tag;
-        using value_type = std::pair<const TKey, TValue>;
-        using difference_type = std::ptrdiff_t;
-        using pointer = value_type*;
-        using reference = value_type&;
-
         Iterator(Node* start_node, Node* root_of_tree_for_begin = nullptr) : current_node(nullptr) {
             if (start_node == nullptr && root_of_tree_for_begin != nullptr) {
                 push_left_branch(root_of_tree_for_begin);
