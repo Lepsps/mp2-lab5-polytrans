@@ -39,7 +39,7 @@ target_link_libraries(polynoms PUBLIC cyclic_list)
 
 add_library(trans ${trans_hdrs} ${trans_srcs})
 target_include_directories(trans PUBLIC include/trans)
-target_link_libraries(trans PUBLIC polynoms)
+target_link_libraries(trans PUBLIC polynoms map tree hash)
 
 add_executable(main ${main_srcs})
 target_link_libraries(main PRIVATE cyclic_list polynoms map tree hash trans)
