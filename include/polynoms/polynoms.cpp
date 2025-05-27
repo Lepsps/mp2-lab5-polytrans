@@ -122,6 +122,8 @@ bool Monom::operator>(const Monom& oth) const {
         if (this->powers[i] < oth.powers[i]) return false;
     }
 
+    if (this->ratio > oth.ratio) return true;
+
     return false;
 }
 

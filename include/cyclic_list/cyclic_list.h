@@ -2,8 +2,8 @@
 
 #include <iostream>
 #include <stdexcept>
-#include <algorithm>        
-#include <iterator>        
+#include <algorithm>   
+#include <iterator>           
 
 template <typename T>
 class CyclicList {
@@ -16,95 +16,8 @@ private:
     };
 
     Node* head = nullptr;
-    Node* tail = nullptr;     
+    Node* tail = nullptr;        
     size_t size_ = 0;
-
-    Node* getMiddle(Node* h) {
-        if (h == nullptr) return h;
-        Node* slow = h;
-        Node* fast = h;
-        while (fast->next != nullptr && fast->next->next != nullptr && fast->next != head && fast->next->next != head) {
-            if (fast->next == h || (fast->next->next != nullptr && fast->next->next == h)) break;        
-            slow = slow->next;
-            fast = fast->next->next;
-        }
-        return slow;
-    }
-
-    Node* sortedMerge(Node* a, Node* b, bool reverse) {
-        if (a == nullptr) return b;
-        if (b == nullptr) return a;
-
-        Node* result = nullptr;
-        bool compare_result;
-
-        if (!reverse) {   
-            compare_result = (a->data < b->data);       
-        }
-        else {   
-            compare_result = (a->data > b->data);       
-        }
-
-        if (compare_result) {
-            result = a;
-            result->next = sortedMerge(a->next, b, reverse);
-        }
-        else {
-            result = b;
-            result->next = sortedMerge(a, b->next, reverse);
-        }
-        return result;
-    }
-
-    void mergeSortRecursive(Node** headRef, bool reverse) {
-        Node* h = *headRef;
-        Node* a;
-        Node* b;
-
-        if (h == nullptr || h->next == h) {            
-            return;
-        }
-
-        Node* original_tail = this->tail;    
-        if (original_tail) original_tail->next = nullptr;   
-
-        Node* middle = getMiddleStandard(h);
-
-        a = h;
-        b = middle->next;
-        middle->next = nullptr;     
-
-        mergeSortRecursive(&a, reverse);
-        mergeSortRecursive(&b, reverse);
-
-        *headRef = sortedMerge(a, b, reverse);
-
-        if (*headRef != nullptr) {
-            this->head = *headRef;   
-            Node* current = this->head;
-            while (current->next != nullptr) {
-                current = current->next;
-            }
-            this->tail = current;   
-            this->tail->next = this->head;   
-        }
-        else {
-            this->head = nullptr;
-            this->tail = nullptr;
-        }
-    }
-
-    Node* getMiddleStandard(Node* h_linear) {
-        if (h_linear == nullptr) return h_linear;
-        Node* slow = h_linear;
-        Node* fast = h_linear->next;        
-        while (fast != nullptr && fast->next != nullptr) {
-            slow = slow->next;
-            fast = fast->next->next;
-        }
-        return slow;
-    }
-
 
 public:
     CyclicList() = default;
@@ -119,7 +32,7 @@ public:
         }
         Node* current_oth = oth.head;
         do {
-            push_back(current_oth->data);    
+            push_back(current_oth->data);
             current_oth = current_oth->next;
         } while (current_oth != oth.head);
     }
@@ -128,38 +41,17 @@ public:
         if (this == &oth) {
             return *this;
         }
-        clear();    
+        clear();
         if (oth.empty()) {
             return *this;
         }
         Node* current_oth = oth.head;
         do {
-            push_back(current_oth->data);    
+            push_back(current_oth->data);
             current_oth = current_oth->next;
         } while (current_oth != oth.head);
         return *this;
     }
-    CyclicList(CyclicList&& oth) noexcept
-        : head(oth.head), tail(oth.tail), size_(oth.size_) {
-        oth.head = nullptr;
-        oth.tail = nullptr;
-        oth.size_ = 0;
-    }
-
-    CyclicList& operator=(CyclicList&& oth) noexcept {
-        if (this == &oth) {
-            return *this;
-        }
-        clear();
-        head = oth.head;
-        tail = oth.tail;
-        size_ = oth.size_;
-        oth.head = nullptr;
-        oth.tail = nullptr;
-        oth.size_ = 0;
-        return *this;
-    }
-
 
     bool empty() const {
         return (size_ == 0);
@@ -174,9 +66,9 @@ public:
             current = current->next;
             delete temp;
         }
-        delete head;
+        delete head;       
         head = nullptr;
-        tail = nullptr;    
+        tail = nullptr;
         size_ = 0;
     }
 
@@ -185,7 +77,7 @@ public:
         if (empty()) {
             head = newNode;
             tail = newNode;
-            head->next = head;     
+            head->next = head;
         }
         else {
             newNode->next = head;
@@ -205,12 +97,12 @@ public:
         else {
             newNode->next = head;
             head = newNode;
-            tail->next = head;       
+            tail->next = head;
         }
         size_++;
     }
 
-    void pop_back() {      
+    void pop_back() {
         if (empty()) {
             throw std::out_of_range("List is empty");
         }
@@ -222,7 +114,7 @@ public:
         }
         else {
             Node* current = head;
-            while (current->next != tail) {   
+            while (current->next != tail) {
                 current = current->next;
             }
             delete tail;
@@ -237,14 +129,14 @@ public:
         }
         size_--;
         if (size_ == 0) {
-            delete head;        
+            delete head;
             head = nullptr;
             tail = nullptr;
         }
         else {
             Node* temp = head;
             head = head->next;
-            tail->next = head;      
+            tail->next = head;
             delete temp;
         }
     }
@@ -253,7 +145,7 @@ public:
         return size_;
     }
 
-    T& operator[](size_t index) {   
+    T& operator[](size_t index) {
         if (index >= size_) {
             throw std::out_of_range("Index out of range");
         }
@@ -264,7 +156,7 @@ public:
         return current->data;
     }
 
-    const T& operator[](size_t index) const {   
+    const T& operator[](size_t index) const {
         if (index >= size_) {
             throw std::out_of_range("Index out of range");
         }
@@ -289,35 +181,32 @@ public:
         return tail->data;
     }
 
-
     int find(const T& value) const {
         if (empty()) {
             return -1;
         }
         Node* curr = head;
         int index = 0;
-        do {
+        for (size_t i = 0; i < size_; ++i, curr = curr->next, ++index) {
             if (curr->data == value) return index;
-            curr = curr->next;
-            index++;
-        } while (curr != head && index < size_);            
+        }
         return -1;
     }
 
-    void insert(size_t index, const T& value) {  
+    void insert(size_t index, const T& value) {
         if (index > size_) {
             throw std::out_of_range("Index out of range for insert");
         }
         if (index == 0) {
-            push_front(value);  
+            push_front(value);
         }
         else if (index == size_) {
-            push_back(value);  
+            push_back(value);
         }
         else {
             Node* newNode = new Node(value);
             Node* current = head;
-            for (size_t i = 0; i < index - 1; i++) {
+            for (size_t i = 0; i < index - 1; i++) {      
                 current = current->next;
             }
             newNode->next = current->next;
@@ -326,26 +215,32 @@ public:
         }
     }
 
-    void erase(size_t index) {  
-        if (index >= size_ || empty()) {    
+    void erase(size_t index) {
+        if (index >= size_ || empty()) {
             throw std::out_of_range("Index out of range for erase or list is empty");
         }
-        if (size_ == 1) {      
-            pop_front();     
+
+        if (size_ == 1) {    
+            delete head;
+            head = nullptr;
+            tail = nullptr;
+            size_ = 0;
             return;
         }
+
         if (index == 0) {
-            pop_front();  
+            pop_front();        
         }
-        else {              
+        else {
             Node* current = head;
-            for (size_t i = 0; i < index - 1; i++) {
+            for (size_t i = 0; i < index - 1; i++) {     
                 current = current->next;
             }
-            Node* temp = current->next;
-            current->next = temp->next;
-            if (temp == tail) {      
-                tail = current;
+            Node* temp = current->next;    
+            current->next = temp->next;    
+
+            if (temp == tail) {    
+                tail = current;          
             }
             delete temp;
             size_--;
@@ -353,35 +248,72 @@ public:
     }
 
     void sort(const bool reverse = false) {
-        if (size_ < 2) {
+        if (empty() || size_ == 1) {
             return;
         }
-        mergeSortRecursive(&head, reverse);
+
+        bool swapped;
+        Node* current_node;       
+
+        do {
+            swapped = false;
+            current_node = head;      
+
+            for (size_t i = 0; i < size_ - 1; i++) {
+                Node* next_node_ptr = current_node->next;    
+                bool should_swap = false;
+
+                if (!reverse) {    
+                    if (current_node->data > next_node_ptr->data) {     
+                        should_swap = true;
+                    }
+                }
+                else {    
+                    if (current_node->data < next_node_ptr->data) {     
+                        should_swap = true;
+                    }
+                }
+
+                if (should_swap) {
+                    std::swap(current_node->data, next_node_ptr->data);    
+                    swapped = true;      
+                }
+                current_node = current_node->next;       
+            }
+        } while (swapped);       
     }
 
-
-    void reverse() {  
-        if (size_ < 2) {
+    void reverse() {
+        if (size_ < 2) {         
             return;
         }
-        Node* prev = tail;      
-        Node* current = head;
+
+        Node* prev_node = nullptr;
+        Node* current_node = head;
         Node* next_node = nullptr;
+        Node* original_head = head;        
 
-        Node* old_head = head;        
-
-        for (size_t i = 0; i < size_; ++i) {
-            next_node = current->next;
-            current->next = prev;
-            prev = current;
-            current = next_node;
+        if (tail) {
+            tail->next = nullptr;
         }
-        head = prev;         
-        tail = old_head;      
+
+        while (current_node != nullptr) {
+            next_node = current_node->next;    
+            current_node->next = prev_node;       
+            prev_node = current_node;           
+            current_node = next_node;             
+        }
+
+        head = prev_node;             
+        tail = original_head;         
+
+        if (tail) {       
+            tail->next = head;
+        }
     }
 
 
-    size_t count(const T& value) const {  
+    size_t count(const T& value) const {
         if (empty()) return 0;
         size_t n = 0;
         Node* current = head;
@@ -394,7 +326,7 @@ public:
         return n;
     }
 
-    void print() const {  
+    void print() const {
         if (empty()) {
             std::cout << "(empty)" << std::endl;
             return;
@@ -406,7 +338,7 @@ public:
         }
         std::cout << " (loops to head)" << std::endl;
     }
+
     const Node* get_head_node() const { return head; }
     Node* get_head_node() { return head; }
-
 };

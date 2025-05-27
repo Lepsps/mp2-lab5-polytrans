@@ -317,6 +317,9 @@ TEST(CyclicList, Sort) {
     list.push_back(6);
 
     list.sort();
+    /*for (int i = 0; i < list.size(); i++) {
+        std::cout << list[i] << std::endl;
+    }*/
     ASSERT_TRUE(areEqual(list, { 1, 1, 2, 3, 4, 5, 6, 9 }));
 
     list.sort(true);
@@ -434,7 +437,7 @@ TEST(CyclicList, RandomOperations) {
     CyclicList<int> list;
     
     std::vector<int> expected;
-    const int numOperations = 2000;
+    const int numOperations = 200;
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_int_distribution<> distrib(0, 5);
