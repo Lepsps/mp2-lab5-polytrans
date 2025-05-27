@@ -2,8 +2,8 @@
 
 #include <iostream>
 #include <stdexcept>
-#include <algorithm>
-#include <iterator>
+#include <algorithm>        
+#include <iterator>        
 
 template <typename T>
 class CyclicList {
@@ -12,11 +12,99 @@ private:
     public:
         T data;
         Node* next;
-        Node(T value = nullptr, Node* next = nullptr) : data(value), next(next) {}
+        Node(T value = T{}, Node* next_node = nullptr) : data(value), next(next_node) {}
     };
 
     Node* head = nullptr;
+    Node* tail = nullptr;     
     size_t size_ = 0;
+
+    Node* getMiddle(Node* h) {
+        if (h == nullptr) return h;
+        Node* slow = h;
+        Node* fast = h;
+        while (fast->next != nullptr && fast->next->next != nullptr && fast->next != head && fast->next->next != head) {
+            if (fast->next == h || (fast->next->next != nullptr && fast->next->next == h)) break;        
+            slow = slow->next;
+            fast = fast->next->next;
+        }
+        return slow;
+    }
+
+    Node* sortedMerge(Node* a, Node* b, bool reverse) {
+        if (a == nullptr) return b;
+        if (b == nullptr) return a;
+
+        Node* result = nullptr;
+        bool compare_result;
+
+        if (!reverse) {   
+            compare_result = (a->data < b->data);       
+        }
+        else {   
+            compare_result = (a->data > b->data);       
+        }
+
+        if (compare_result) {
+            result = a;
+            result->next = sortedMerge(a->next, b, reverse);
+        }
+        else {
+            result = b;
+            result->next = sortedMerge(a, b->next, reverse);
+        }
+        return result;
+    }
+
+    void mergeSortRecursive(Node** headRef, bool reverse) {
+        Node* h = *headRef;
+        Node* a;
+        Node* b;
+
+        if (h == nullptr || h->next == h) {            
+            return;
+        }
+
+        Node* original_tail = this->tail;    
+        if (original_tail) original_tail->next = nullptr;   
+
+        Node* middle = getMiddleStandard(h);
+
+        a = h;
+        b = middle->next;
+        middle->next = nullptr;     
+
+        mergeSortRecursive(&a, reverse);
+        mergeSortRecursive(&b, reverse);
+
+        *headRef = sortedMerge(a, b, reverse);
+
+        if (*headRef != nullptr) {
+            this->head = *headRef;   
+            Node* current = this->head;
+            while (current->next != nullptr) {
+                current = current->next;
+            }
+            this->tail = current;   
+            this->tail->next = this->head;   
+        }
+        else {
+            this->head = nullptr;
+            this->tail = nullptr;
+        }
+    }
+
+    Node* getMiddleStandard(Node* h_linear) {
+        if (h_linear == nullptr) return h_linear;
+        Node* slow = h_linear;
+        Node* fast = h_linear->next;        
+        while (fast != nullptr && fast->next != nullptr) {
+            slow = slow->next;
+            fast = fast->next->next;
+        }
+        return slow;
+    }
+
 
 public:
     CyclicList() = default;
@@ -25,58 +113,70 @@ public:
         clear();
     }
 
-    CyclicList(const CyclicList& oth) {
+    CyclicList(const CyclicList& oth) : head(nullptr), tail(nullptr), size_(0) {
         if (oth.empty()) {
             return;
         }
-        else {
-            Node* curr = oth.head;
-            do {
-                push_back(curr->data);
-                curr = curr->next;
-            } while (curr != oth.head);
-        }
+        Node* current_oth = oth.head;
+        do {
+            push_back(current_oth->data);    
+            current_oth = current_oth->next;
+        } while (current_oth != oth.head);
     }
 
     CyclicList& operator=(const CyclicList& oth) {
         if (this == &oth) {
             return *this;
         }
-
-        clear();
-
-
+        clear();    
         if (oth.empty()) {
             return *this;
         }
-        Node* curr = oth.head;
-        head = new Node(curr->data);
-        head->next = head;
-        size_++;
-        curr = curr->next;
-        while (curr != oth.head) {
-            push_back(curr->data);
-            curr = curr->next;
+        Node* current_oth = oth.head;
+        do {
+            push_back(current_oth->data);    
+            current_oth = current_oth->next;
+        } while (current_oth != oth.head);
+        return *this;
+    }
+    CyclicList(CyclicList&& oth) noexcept
+        : head(oth.head), tail(oth.tail), size_(oth.size_) {
+        oth.head = nullptr;
+        oth.tail = nullptr;
+        oth.size_ = 0;
+    }
+
+    CyclicList& operator=(CyclicList&& oth) noexcept {
+        if (this == &oth) {
+            return *this;
         }
+        clear();
+        head = oth.head;
+        tail = oth.tail;
+        size_ = oth.size_;
+        oth.head = nullptr;
+        oth.tail = nullptr;
+        oth.size_ = 0;
         return *this;
     }
 
-    bool empty() const{
+
+    bool empty() const {
         return (size_ == 0);
     }
 
     void clear() {
-        if (size_ == 0) return;
+        if (empty()) return;
 
-        Node* curr = head->next;
-
-        while (curr != head) {
-            Node* kal = curr;
-            curr = curr->next;
-            delete kal;
+        Node* current = head->next;
+        while (current != head) {
+            Node* temp = current;
+            current = current->next;
+            delete temp;
         }
         delete head;
         head = nullptr;
+        tail = nullptr;    
         size_ = 0;
     }
 
@@ -84,56 +184,50 @@ public:
         Node* newNode = new Node(value);
         if (empty()) {
             head = newNode;
-            head->next = head;
+            tail = newNode;
+            head->next = head;     
         }
         else {
-            Node* curr = head;
-            do {
-                curr = curr->next;
-            } while (curr->next != head);
-
             newNode->next = head;
-            curr->next = newNode;
+            tail->next = newNode;
+            tail = newNode;
         }
         size_++;
     }
 
     void push_front(const T& value) {
+        Node* newNode = new Node(value);
         if (empty()) {
-            push_back(value);
+            head = newNode;
+            tail = newNode;
+            head->next = head;
         }
         else {
-            Node* newNode = new Node(value);
             newNode->next = head;
-
-            Node* curr = head;
-            do {
-                curr = curr->next;
-            } while (curr->next != head);
-            
             head = newNode;
-            curr->next = head;
-            size_++;
+            tail->next = head;       
         }
+        size_++;
     }
 
-    void pop_back() {
+    void pop_back() {      
         if (empty()) {
             throw std::out_of_range("List is empty");
         }
         size_--;
-
         if (size_ == 0) {
             delete head;
             head = nullptr;
+            tail = nullptr;
         }
         else {
-            Node* curr = head;
-            while (curr->next->next != head) {
-                curr = curr->next;
+            Node* current = head;
+            while (current->next != tail) {   
+                current = current->next;
             }
-            delete curr->next;
-            curr->next = head;
+            delete tail;
+            tail = current;
+            tail->next = head;
         }
     }
 
@@ -142,197 +236,177 @@ public:
             throw std::out_of_range("List is empty");
         }
         size_--;
-
         if (size_ == 0) {
-            delete head;
+            delete head;        
             head = nullptr;
+            tail = nullptr;
         }
         else {
-            Node* curr = head;
-            while (curr->next != head) {
-                curr = curr->next;
-            }
-            Node* kal = head;
+            Node* temp = head;
             head = head->next;
-            curr->next = head;
-
-            delete kal;
+            tail->next = head;      
+            delete temp;
         }
     }
-
 
     size_t size() const {
         return size_;
     }
 
-
-    T& operator[](size_t index) {
+    T& operator[](size_t index) {   
         if (index >= size_) {
             throw std::out_of_range("Index out of range");
         }
-
-        Node* curr = head;
-        
-        for (int i = 0; i < index; i++) {
-            curr = curr->next;
+        Node* current = head;
+        for (size_t i = 0; i < index; i++) {
+            current = current->next;
         }
-        return curr->data;
+        return current->data;
     }
 
-    const T& operator[](size_t index) const {
+    const T& operator[](size_t index) const {   
         if (index >= size_) {
             throw std::out_of_range("Index out of range");
         }
-
-        Node* curr = head;
-
-        for (int i = 0; i < index; i++) {
-            curr = curr->next;
+        Node* current = head;
+        for (size_t i = 0; i < index; i++) {
+            current = current->next;
         }
-        return curr->data;
+        return current->data;
+    }
+
+    T& back() {
+        if (empty()) {
+            throw std::out_of_range("List is empty, cannot access back element.");
+        }
+        return tail->data;
+    }
+
+    const T& back() const {
+        if (empty()) {
+            throw std::out_of_range("List is empty, cannot access back element.");
+        }
+        return tail->data;
     }
 
 
-    int find(const T& value) const{
+    int find(const T& value) const {
         if (empty()) {
             return -1;
         }
-
         Node* curr = head;
         int index = 0;
         do {
             if (curr->data == value) return index;
             curr = curr->next;
             index++;
-        } while (curr != head);
-
+        } while (curr != head && index < size_);            
         return -1;
     }
 
-
-
-    void insert(size_t index, const T& value) {
+    void insert(size_t index, const T& value) {  
         if (index > size_) {
-            throw std::out_of_range("Index out of range");
+            throw std::out_of_range("Index out of range for insert");
         }
-
         if (index == 0) {
-            push_front(value);
+            push_front(value);  
         }
         else if (index == size_) {
-            push_back(value);
+            push_back(value);  
         }
         else {
             Node* newNode = new Node(value);
-            Node* curr = head;
-            for (int i = 0; i < index - 1; i++) {
-                curr = curr->next;
+            Node* current = head;
+            for (size_t i = 0; i < index - 1; i++) {
+                current = current->next;
             }
-            newNode->next = curr->next;
-            curr->next = newNode;
+            newNode->next = current->next;
+            current->next = newNode;
             size_++;
         }
     }
 
-    void erase(size_t index) {
-        if (index >= size_) {
-            throw std::out_of_range("Index out of range");
+    void erase(size_t index) {  
+        if (index >= size_ || empty()) {    
+            throw std::out_of_range("Index out of range for erase or list is empty");
         }
-
+        if (size_ == 1) {      
+            pop_front();     
+            return;
+        }
         if (index == 0) {
-            pop_front();
+            pop_front();  
         }
-        else if (index == size_ - 1) {
-            pop_back();
-        }
-        else {
-            Node* curr = head;
-            for (int i = 0; i < index - 1; i++) {
-                curr = curr->next;
+        else {              
+            Node* current = head;
+            for (size_t i = 0; i < index - 1; i++) {
+                current = current->next;
             }
-            Node* temp = curr->next;
-            curr->next = curr->next->next;
+            Node* temp = current->next;
+            current->next = temp->next;
+            if (temp == tail) {      
+                tail = current;
+            }
             delete temp;
             size_--;
         }
     }
 
-
     void sort(const bool reverse = false) {
-        if (empty() || size_ == 1) {
+        if (size_ < 2) {
             return;
         }
-
-        bool swapped;
-        Node* curr;
-
-
-        do {
-            swapped = false;
-            curr = head;
-
-            for (size_t i = 0; i < size_ - 1; i++) {
-                Node* next_node = curr->next;
-                bool should_swap = false;
-                if (!reverse) {
-                    if (curr->data > next_node->data) {
-                        should_swap = true;
-                    }
-                }
-                else {
-                    if (curr->data < next_node->data) {
-                        should_swap = true;
-                    }
-                }
-                if (should_swap) {
-                    std::swap(curr->data, next_node->data);
-                    swapped = true;
-                }
-                curr = curr->next;
-            }
-        } while (swapped);
+        mergeSortRecursive(&head, reverse);
     }
 
 
-    void reverse() {
-        if (empty()) {
+    void reverse() {  
+        if (size_ < 2) {
             return;
         }
+        Node* prev = tail;      
+        Node* current = head;
+        Node* next_node = nullptr;
 
-        Node* f = head;
-        Node* s = head->next;
-        Node* t = head->next->next;
-        do {
-            s->next = f;
-            f = s;
-            s = t;
-            t = s->next;
-        } while (s != head);
-        head = f;
-        s->next = head;
+        Node* old_head = head;        
+
+        for (size_t i = 0; i < size_; ++i) {
+            next_node = current->next;
+            current->next = prev;
+            prev = current;
+            current = next_node;
+        }
+        head = prev;         
+        tail = old_head;      
     }
 
-    size_t count(const T& value) const {
+
+    size_t count(const T& value) const {  
         if (empty()) return 0;
-
         size_t n = 0;
-        Node* curr = head;
-        do {
-            if (curr->data == value) {
+        Node* current = head;
+        for (size_t i = 0; i < size_; ++i) {     
+            if (current->data == value) {
                 n++;
             }
-            curr = curr->next;
-        } while (curr != head);
+            current = current->next;
+        }
         return n;
     }
 
-
-    void print() const {
-        Node* curr = head;
-        do {
-            std::cout << curr->data << " ";
-            curr = curr->next;
-        } while (curr != head);
-        std::cout << std::endl;
+    void print() const {  
+        if (empty()) {
+            std::cout << "(empty)" << std::endl;
+            return;
+        }
+        Node* current = head;
+        for (size_t i = 0; i < size_; ++i) {
+            std::cout << current->data << (i == size_ - 1 ? "" : " -> ");
+            current = current->next;
+        }
+        std::cout << " (loops to head)" << std::endl;
     }
+    const Node* get_head_node() const { return head; }
+    Node* get_head_node() { return head; }
+
 };

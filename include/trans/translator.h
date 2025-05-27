@@ -13,7 +13,7 @@
 #include "bs_tree.h"
 #include "rb_tree.h"
 #include "avl_tree.h"
-#include <map>         
+#include <map>
 
 #include <string>
 #include <vector>
